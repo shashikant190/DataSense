@@ -1,0 +1,82 @@
+# -----------------------------------
+# Python
+# -----------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.so
+
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+.python-version
+
+# Build
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Jupyter / IPython
+.ipynb_checkpoints/
+
+# Byte-compiled
+*.sqlite3
+*.db
+
+# -----------------------------------
+# FastAPI / Uvicorn / Logs
+# -----------------------------------
+*.log
+logs/
+*.pid
+
+# -----------------------------------
+# Environment Variables (VERY IMPORTANT)
+# -----------------------------------
+.env
+.env.*            # .env.local, .env.production, etc.
+
+# API Keys, credentials
+secrets.json
+
+# -----------------------------------
+# VSCode / PyCharm
+# -----------------------------------
+.vscode/
+.idea/
+*.iml
+
+# -----------------------------------
+# OS junk
+# -----------------------------------
+.DS_Store
+Thumbs.db
+
+# -----------------------------------
+# Node modules (if dashboard later)
+# -----------------------------------
+node_modules/
+.next/
+out/
+pnpm-lock.yaml
+package-lock.json
+npm-debug.log
+
+# -----------------------------------
+# Cache folders
+# -----------------------------------
+.cache/
+.mypy_cache/
+.pytest_cache/
+.coverage
+pytestdebug.log
+
+# -----------------------------------
+# Render / Deployment
+# -----------------------------------
+render.yaml
