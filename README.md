@@ -54,7 +54,7 @@ git clone https://github.com/shashikant190/DataSense
 ```
 
 ```
-cd natural-language-backend
+cd DataSense
 ```
 
 Create & activate virtual environment
