@@ -50,7 +50,7 @@ This backend lets users:
 🛠️ 1. Installation
 Clone the repo
 ```
-git clone https://github.com/yourname/natural-language-backend
+git clone https://github.com/shashikant190/DataSense
 ```
 
 ```
