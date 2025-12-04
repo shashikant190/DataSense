@@ -15,40 +15,36 @@ from app.db import run_sql
 from app.nlp_engine import parse_query
 from app.query_builder import build_sql
 
-
 load_dotenv()
 
+# IMPORTANT: add both GitHub Pages and localhost
+allowed_origins = [
+    os.getenv("FRONTEND_ORIGIN", "https://shashikant190.github.io"),
+    "http://127.0.0.1:5500",
+    "http://localhost:5500"
+]
 
-FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "*")  
-
-
-# ---------------------------
-# FASTAPI APP + CORS
-# ---------------------------
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_ORIGIN],   
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=86400,
 )
-
 
 class QueryRequest(BaseModel):
     text: str
     project: str = "default"
 
 
-# ---------------------------
-# CONNECT TO PROJECT DB
-# ---------------------------
 @app.post("/connect")
 def connect_db(req: ConnectRequest):
     save_connection(req.project, req.database_url)
     connect_project_engine(req.project, req.database_url)
-
     detected = autodetect_schema(req.project)
 
     return {
@@ -58,9 +54,6 @@ def connect_db(req: ConnectRequest):
     }
 
 
-# ---------------------------
-# SCHEMA ROUTES
-# ---------------------------
 @app.post("/schema")
 def upload_schema(data: dict, project: str = "default"):
     return set_schema(data, project)
@@ -81,9 +74,6 @@ def autodetect_endpoint(project: str = "default"):
     return autodetect_schema(project)
 
 
-# ---------------------------
-# QUERY ROUTE
-# ---------------------------
 @app.post("/query")
 def query_endpoint(req: QueryRequest):
 
@@ -92,16 +82,12 @@ def query_endpoint(req: QueryRequest):
         raise HTTPException(400, "Schema not loaded. POST /schema or /schema/load first.")
 
     engine = get_engine(req.project)
-
     parsed = parse_query(req.text, schema)
+
     if not parsed.get("entity"):
         raise HTTPException(400, f"Could not identify entity from: {req.text}")
 
     sql = build_sql(parsed)
     result = run_sql(sql, engine=engine)
 
-    return {
-        "parsed": parsed,
-        "sql": sql,
-        "result": result
-    }
+    return {"parsed": parsed, "sql": sql, "result": result}
