@@ -1,7 +1,10 @@
 # app/server.py
 
+import os
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from dotenv import load_dotenv
 
 from app.connections import ConnectRequest, save_connection, connect_project_engine
 from app.schema_manager import (
@@ -12,7 +15,25 @@ from app.db import run_sql
 from app.nlp_engine import parse_query
 from app.query_builder import build_sql
 
+
+load_dotenv()
+
+
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "*")  
+
+
+# ---------------------------
+# FASTAPI APP + CORS
+# ---------------------------
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[FRONTEND_ORIGIN],   
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class QueryRequest(BaseModel):
@@ -20,6 +41,9 @@ class QueryRequest(BaseModel):
     project: str = "default"
 
 
+# ---------------------------
+# CONNECT TO PROJECT DB
+# ---------------------------
 @app.post("/connect")
 def connect_db(req: ConnectRequest):
     save_connection(req.project, req.database_url)
@@ -27,9 +51,16 @@ def connect_db(req: ConnectRequest):
 
     detected = autodetect_schema(req.project)
 
-    return {"status": "connected", "project": req.project, "schema": detected}
+    return {
+        "status": "connected",
+        "project": req.project,
+        "schema": detected
+    }
 
 
+# ---------------------------
+# SCHEMA ROUTES
+# ---------------------------
 @app.post("/schema")
 def upload_schema(data: dict, project: str = "default"):
     return set_schema(data, project)
@@ -50,12 +81,13 @@ def autodetect_endpoint(project: str = "default"):
     return autodetect_schema(project)
 
 
+# ---------------------------
+# QUERY ROUTE
+# ---------------------------
 @app.post("/query")
 def query_endpoint(req: QueryRequest):
 
-    # FIXED ↓↓↓
     schema = get_schema(req.project)
-
     if not schema:
         raise HTTPException(400, "Schema not loaded. POST /schema or /schema/load first.")
 
@@ -68,4 +100,8 @@ def query_endpoint(req: QueryRequest):
     sql = build_sql(parsed)
     result = run_sql(sql, engine=engine)
 
-    return {"parsed": parsed, "sql": sql, "result": result}
+    return {
+        "parsed": parsed,
+        "sql": sql,
+        "result": result
+    }
